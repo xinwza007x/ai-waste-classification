@@ -1,0 +1,48 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ✅ 1. เพิ่ม Model User (หัวใจของระบบ Login)
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  password  String     // เก็บแบบ Hashed Password
+  name      String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  // ความสัมพันธ์: User 1 คน มีประวัติการสแกนขยะได้หลายรายการ
+  wasteLogs WasteLog[]
+}
+
+// ✅ 2. ปรับปรุง WasteLog ให้เก็บข้อมูลครบถ้วนและเชื่อมกับ User
+model WasteLog {
+  id         String   @id @default(cuid())
+  imageUrl   String   // URL หรือ Base64 ของรูปภาพ
+  wasteType  String   // ประเภทขยะ (เช่น พลาสติก, โฟม)
+  category   String   // หมวดหมู่ (เช่น ขยะรีไซเคิล)
+  confidence Float    // ค่าความมั่นใจ (0.0 - 1.0)
+  binColor   String   // สีถังขยะ
+  createdAt  DateTime @default(now())
+
+  // ✅ การเชื่อมโยงกับ User
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+}
+
+// ⚠️ ตัวเดิมที่คุณเคยมี (เก็บไว้ได้ถ้ายังใช้อยู่ แต่แนะนำให้ใช้ WasteLog แทนเพื่อเชื่อมกับระบบ Login)
+model WasteRecord {
+  id           Int      @id @default(autoincrement())
+  imageUrl     String
+  wasteType    String
+  category     String
+  confidence   Float
+  binColor     String
+  boundingBox  String?
+  createdAt    DateTime @default(now())
+}
